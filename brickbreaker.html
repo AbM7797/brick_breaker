@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta	
+  content="text/html;charset=utf-­‐8"	
+  http-­‐equiv="Content-­‐Type">
+<meta	
+  content="utf-­‐8"	
+  http-­‐equiv="encoding"></head>
+<body>
+<canvas id="brick" width="800" height="600"></canvas>
+<script>
+	var canvas;
+	var canvasContext;
+	var ballX=75;
+	var ballY=75;
+	var ballSpeedX=2;
+	var ballSpeedY=2;
+	var paddle1x=100;
+	var paddle1y=590;
+	const paddlewidth=200
+	const paddledist=20
+	const paddlethik=10
+	const brick_w=80
+	const brick_h=20
+	const brick_gab=2
+	const brick_cols=14
+	const brick_rows=10
+	var k=brick_cols*brick_rows
+	var brickgrid = new Array(brick_cols*brick_rows)
+
+
+	
+	window.onload=function(){
+
+		canvas=document.getElementById("brick");
+		canvasContext=canvas.getContext('2d');
+		var framesPerSecond=30;
+		setInterval(callBothMoveAndDraw,400/framesPerSecond);
+		canvas.addEventListener('mousemove',function(evt){
+			var mousepos=calculatemousepos(evt);
+			paddle1x=mousepos.x -(paddlewidth/2);
+			//paddle1y=mousepos.y
+
+		})
+		resetbricks()
+		rest();
+		
+
+
+
+	}
+	function calculatemousepos(evt){
+			var rect=canvas.getBoundingClientRect(),root=document.documentElement;
+			var mousex=evt.clientX -rect.left -root.scrollLeft;
+			var mousey=evt.clientY -rect.top -root.scrollTop;
+			return {
+				x:mousex,
+				y:mousey
+			};
+			
+		}
+
+	function callBothMoveAndDraw(){
+		moveEverything()
+		drawEverything()
+		drawBricks()
+		if(k==0){
+			rest()
+			resetbricks()
+			k=brick_cols*brick_rows
+		}
+	}
+	function rest(){
+		ballX=canvas.width/2
+		ballY=canvas.height/2
+		
+
+	}
+	function moveEverything(){
+		if(ballX>canvas.width){
+			ballSpeedX*=-1
+		}else if(ballX<0){
+			ballSpeedX*=-1
+		}else if(ballY>paddle1y-paddledist){
+			if(ballX>paddle1x && ballX<(paddle1x+paddlewidth) ){
+				ballSpeedY*=-1
+				var deltaX=ballX-(paddle1x+paddlewidth/2);
+				ballSpeedX=deltaX*0.09;
+				
+			}else{
+				rest()
+			}
+			
+		}else if(ballY<0){
+			ballSpeedY*=-1
+		}
+		ballX+=ballSpeedX
+		ballY+=ballSpeedY
+		removeBrickAtPixelCoord(ballX,ballY)
+		
+	}
+	function removeBrickAtPixelCoord(pixelx,pixely){
+		var tileCol=Math.floor(pixelx/brick_w)
+		var tileRow=Math.floor(pixely/brick_h)
+		if(tileCol<0 || tileCol>= brick_cols || tileRow <0 || tileRow >= brick_rows ){ return false ;}
+		var brickIndex=brickTileToIndex(tileCol,tileRow)
+		if(brickgrid[brickIndex] == 1){
+			var prevBallX=ballX - ballSpeedX
+			var prevBallY= ballY - ballSpeedY
+			var prevTileCol = Math.floor(prevBallX / brick_w)
+			var prevTileRow = Math.floor(prevBallY / brick_h)
+			if(prevTileCol  != tileCol){
+				ballSpeedX*=-1
+			}
+			if(prevTileRow != tileRow){
+				ballSpeedY*=-1
+			}
+			brickgrid[brickIndex]=0
+			k+=-1
+		}
+
+	}
+	function brickTileToIndex(tileCole,tileRow){
+		return(tileCole + brick_cols*tileRow)
+	}
+	function resetbricks()
+	{
+		for(var i=(brick_cols*3);i<brick_cols*brick_rows;i++)
+		{
+			brickgrid[i]=1
+		}
+		for(var j=0;j<brick_cols*3;j++){
+			brickgrid[i]=0
+		}
+
+	}
+	function isbrickattilecoord(bricktilecol,bricktilerow){
+		var brickindex=bricktilecol + brick_cols*bricktilerow
+		return(brickgrid[brickindex] == 1)
+	}
+
+	function drawBricks()
+	{
+		for(var i=0; i<brick_cols; i++){
+			for(var j=0; j<brick_rows;j++){
+				if( isbrickattilecoord(i,j) ){
+				drawRect(i*brick_w,j*brick_h,brick_w - brick_gab,brick_h - brick_gab,'blue')
+			}
+			}
+		}
+
+	}
+	function drawRect(posX,posY,width,height,color){
+		canvasContext.fillStyle=color
+		canvasContext.fillRect(posX,posY,width,height)
+
+	}
+	function drawCircle(posX,posY,radius,color){
+		canvasContext.fillStyle=color;
+		canvasContext.beginPath();
+		canvasContext.arc(posX,posY,radius,0,Math.PI*2,true);
+		canvasContext.fill();
+	}
+
+	
+	function drawEverything(){
+		drawRect(0,0,canvas.width,canvas.height,'black')
+		drawRect(paddle1x,paddle1y-paddledist,paddlewidth,paddlethik,'white')
+		drawCircle(ballX,ballY,10,'white')
+
+		
+		
+
+	}
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
